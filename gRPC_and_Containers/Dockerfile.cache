@@ -1,0 +1,13 @@
+FROM python:3.9
+
+RUN pip install flask grpcio grpcio-tools
+
+COPY property_lookup.proto .
+COPY cache.py .
+
+RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. property_lookup.proto
+
+EXPOSE 8080
+
+CMD ["python", "cache.py"]
+
