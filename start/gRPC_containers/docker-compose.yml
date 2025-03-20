@@ -1,0 +1,17 @@
+name: ${PROJECT}
+
+services:
+        cache:
+                image: ${PROJECT}-cache
+                deploy:
+                        replicas: 3
+                ports:
+                 - "8080"
+                environment:
+                 - PROJECT=${PROJECT}
+        dataset:
+                image: ${PROJECT}-dataset
+                deploy:
+                        replicas: 2
+                environment:
+                 - PROJECT=${PROJECT}
