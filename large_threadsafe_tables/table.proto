@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package table;
+
+service Table {
+    rpc Upload(UploadReq) returns (UploadResp);
+    rpc ColSum(ColSumReq) returns (ColSumResp);
+}
+
+message UploadReq {
+    bytes csv_data = 1; 
+}
+
+message UploadResp {
+    string error = 1;
+}
+
+message ColSumReq {
+    string column = 1;
+    string format = 2;  // "csv" or "parquet"
+}
+
+message ColSumResp {
+    int64 total = 1;
+    string error = 2;
+}

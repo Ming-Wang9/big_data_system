@@ -1,0 +1,11 @@
+autobadger @ git+https://gitlab:gldt-p2AzX_9vHWtcfx81WfDo@git.doit.wisc.edu/cdis/cs/courses/cs544/s25/tools/autobadger.git@master
+grpcio
+grpcio-tools
+mysql-connector-python
+pandas
+pyarrow
+requests
+pymysql
+sqlalchemy
+retry
+cryptography

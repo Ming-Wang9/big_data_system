@@ -1,0 +1,58 @@
+# Dockerfile.server
+FROM ubuntu:24.04
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-venv \  
+    openjdk-11-jdk \
+    wget \
+    curl \
+    git
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Create directories and set permissions
+RUN mkdir -p /opt/hadoop && chmod 777 /opt
+
+# Install Hadoop
+RUN wget https://downloads.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz -P /tmp && \
+    tar -xvzf /tmp/hadoop-3.3.6.tar.gz -C /opt/hadoop --strip-components=1 && \
+    rm /tmp/hadoop-3.3.6.tar.gz
+
+# Set Hadoop environment variables
+ENV HADOOP_HOME=/opt/hadoop
+ENV PATH="${PATH}:${HADOOP_HOME}/bin"
+ENV HADOOP_USER_NAME=root
+
+# Set HDFS environment variables for PyArrow
+ENV ARROW_LIBHDFS_DIR=${HADOOP_HOME}/lib/native
+ENV LD_LIBRARY_PATH=${HADOOP_HOME}/lib/native
+
+# Set CLASSPATH using RUN command
+RUN export CLASSPATH=`$HADOOP_HOME/bin/hdfs classpath --glob` && \
+    echo "export CLASSPATH=$CLASSPATH" >> /etc/environment
+
+# Create a virtual environment
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:${PATH}"
+
+# Install Python dependencies in the virtual environment
+COPY requirements.txt /requirements.txt
+RUN pip3 install -r /requirements.txt
+
+# Copy server code and protobuf files
+COPY server.py /server.py
+COPY lender.proto /lender.proto
+COPY client.py /client.py
+
+# Generate gRPC code
+RUN python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. lender.proto
+
+# Set working directory
+WORKDIR /
+
+# Run the server (using JSON format for CMD as recommended)
+CMD ["sh", "-c", "export CLASSPATH=`$HADOOP_HOME/bin/hdfs classpath --glob` && python3 /server.py"]
